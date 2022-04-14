@@ -59,7 +59,7 @@ def augment_data(images):
 
         
         if np.random.random() > 0.3:
-            images[i] = tf.contrib.keras.preprocessing.image.random_zoom(images[i], [0.8,1.2], row_axis=0, col_axis=1, channel_axis=2)
+            images[i] = tf.keras.preprocessing.image.random_zoom(images[i], [0.8,1.2], row_axis=0, col_axis=1, channel_axis=2)
         
     return images
 
@@ -98,6 +98,23 @@ def data_generator_pose(X,Y,batch_size):
             yield augment_data(np.array(p)),np.array(q)
             p,q = [],[]
 
+def data_generator_pose_landmark(X,Y,batch_size):
+
+    while True:
+        idxs = np.random.permutation(len(X))
+        X = X[idxs]
+        Y = [Y[0][idxs], Y[1][idxs]]
+        p,q,r = [],[],[]
+        for i in range(len(X)):
+            p.append(X[i])
+            q.append(Y[0][i])
+            r.append(Y[1][i])
+            if len(p) == batch_size:
+                yield augment_data(np.array(p)),[np.array(q),np.array(r)]
+                p,q,r = [],[],[]
+        if p:
+            yield augment_data(np.array(p)),[np.array(q),np.array(r)]
+            p,q,r = [],[],[]
 
 def data_generator_pose_pure(X,Y,batch_size):
 

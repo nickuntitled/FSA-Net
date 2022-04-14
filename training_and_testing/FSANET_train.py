@@ -13,16 +13,16 @@ import TYY_callbacks
 from TYY_generators import *
 
 from keras.utils import np_utils
-from keras.utils import plot_model
-from keras.optimizers import SGD, Adam
+from tensorflow.keras.utils import plot_model
+from tensorflow.keras.optimizers import SGD, Adam
 from keras.preprocessing.image import ImageDataGenerator
 from keras.callbacks import LearningRateScheduler, ModelCheckpoint
 
-logging.basicConfig(level=logging.DEBUG)
+#logging.basicConfig(level=logging.DEBUG)
 
 def load_data_npz(npz_path):
     d = np.load(npz_path)
-    return d["image"], d["pose"]
+    return d["image"], d["landmark"] #d["pose"]
 
 def mk_dir(dir):
     try:
@@ -81,7 +81,7 @@ def main():
             temp_pose = pose[i,:]
             if np.max(temp_pose)<=99.0 and np.min(temp_pose)>=-99.0:
                 x_data.append(image[i,:,:,:])
-                y_data.append(pose[i,:])
+                y_data.append(pose[i,:].reshape(68 * 2))
         x_data = np.array(x_data)
         y_data = np.array(y_data)
         print(x_data.shape)
@@ -107,7 +107,7 @@ def main():
 
     stage_num = [3,3,3]
     lambda_d = 1
-    num_classes = 3
+    num_classes = 136 #3
     isFine = False
 
     if model_type == 0:

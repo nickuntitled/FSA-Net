@@ -23,7 +23,7 @@ class SpatialPyramidPooling(Layer):
 
     def __init__(self, pool_list, pool_type, **kwargs):
 
-        self.dim_ordering = K.image_dim_ordering()
+        self.dim_ordering = K. image_data_format()
         assert self.dim_ordering in {'tf', 'th'}, 'dim_ordering must be in {tf, th}'
 
         self.pool_list = pool_list

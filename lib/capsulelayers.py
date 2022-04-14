@@ -180,7 +180,7 @@ class CapsuleLayer(Layer):
         # Regard the first two dimensions as `batch` dimension,
         # then matmul: [input_dim_capsule] x [dim_capsule, input_dim_capsule]^T -> [dim_capsule].
         # inputs_hat.shape = [None, num_capsule, input_num_capsule, dim_capsule]
-        inputs_hat = K.map_fn(lambda x: batch_dot(
+        inputs_hat = tf.map_fn(lambda x: batch_dot(
             x, self.W, [2, 3]), elems=inputs_tiled)
 
         # Begin: Routing algorithm ---------------------------------------------------------------------#
@@ -192,7 +192,7 @@ class CapsuleLayer(Layer):
         assert self.routings > 0, 'The routings should be > 0.'
         for i in range(self.routings):
             # c.shape=[batch_size, num_capsule, input_num_capsule]
-            c = tf.nn.softmax(b, dim=1)
+            c = tf.nn.softmax(b, axis=1)
 
             # c.shape =  [batch_size, num_capsule, input_num_capsule]
             # inputs_hat.shape=[None, num_capsule, input_num_capsule, dim_capsule]

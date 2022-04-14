@@ -224,7 +224,6 @@ class BaseFSANet(object):
             logging.debug("image_dim_ordering = 'tf'")
             self._input_shape = (image_size, image_size, 3)           
 
-
         self.num_classes = num_classes
         self.stage_num = stage_num
         self.lambda_d = lambda_d
@@ -299,7 +298,7 @@ class BaseFSANet(object):
     
         return Model(inputs=img_inputs,outputs=[feat_s1_pre,feat_s2_pre,feat_s3_pre], name='ssr_G_model')
 
-    def ssr_F_model_build(self, feat_dim, name_F):
+    def ssr_F_model_build(self, feat_dim, num_classes, name_F):
         input_s1_pre = Input((feat_dim,))
         input_s2_pre = Input((feat_dim,))
         input_s3_pre = Input((feat_dim,))
@@ -317,13 +316,13 @@ class BaseFSANet(object):
 
             return delta_s, local_s, pred_s
 
-        delta_s1, local_s1, pred_s1 = _process_input(1, self.stage_num[0], self.num_classes, input_s1_pre)
-        delta_s2, local_s2, pred_s2 = _process_input(2, self.stage_num[1], self.num_classes, input_s2_pre)
-        delta_s3, local_s3, pred_s3 = _process_input(3, self.stage_num[2], self.num_classes, input_s3_pre)        
+        delta_s1, local_s1, pred_s1 = _process_input(1, self.stage_num[0], num_classes, input_s1_pre)
+        delta_s2, local_s2, pred_s2 = _process_input(2, self.stage_num[1], num_classes, input_s2_pre)
+        delta_s3, local_s3, pred_s3 = _process_input(3, self.stage_num[2], num_classes, input_s3_pre)        
     
         return Model(inputs=[input_s1_pre,input_s2_pre,input_s3_pre],outputs=[pred_s1,pred_s2,pred_s3,delta_s1,delta_s2,delta_s3,local_s1,local_s2,local_s3], name=name_F)
 
-    def ssr_FC_model_build(self, feat_dim, name_F):
+    def ssr_FC_model_build(self, feat_dim, num_classes, name_F):
         input_s1_pre = Input((feat_dim,))
         input_s2_pre = Input((feat_dim,))
         input_s3_pre = Input((feat_dim,))
@@ -340,9 +339,9 @@ class BaseFSANet(object):
 
             return delta_s, local_s, pred_s   
 
-        delta_s1, local_s1, pred_s1 = _process_input(1, self.stage_num[0], self.num_classes, input_s1_pre)
-        delta_s2, local_s2, pred_s2 = _process_input(2, self.stage_num[1], self.num_classes, input_s2_pre)
-        delta_s3, local_s3, pred_s3 = _process_input(3, self.stage_num[2], self.num_classes, input_s3_pre)        
+        delta_s1, local_s1, pred_s1 = _process_input(1, self.stage_num[0], num_classes, input_s1_pre)
+        delta_s2, local_s2, pred_s2 = _process_input(2, self.stage_num[1], num_classes, input_s2_pre)
+        delta_s3, local_s3, pred_s3 = _process_input(3, self.stage_num[2], num_classes, input_s3_pre)        
            
         return Model(inputs=[input_s1_pre,input_s2_pre,input_s3_pre],outputs=[pred_s1,pred_s2,pred_s3,delta_s1,delta_s2,delta_s3,local_s1,local_s2,local_s3], name=name_F)
 
@@ -423,32 +422,47 @@ class BaseFSANet(object):
         img_inputs = Input(self._input_shape)        
 
         # Build various models
-        ssr_G_model = self.ssr_G_model_build(img_inputs)        
-        
+        ssr_G_model = self.ssr_G_model_build(img_inputs)  
         if self.is_noS_model:
             ssr_S_model = self.ssr_noS_model_build()           
         else:
-            ssr_S_model = self.ssr_S_model_build(num_primcaps=self.num_primcaps,m_dim=self.m_dim)           
+            ssr_S_model = self.ssr_S_model_build(num_primcaps=self.num_primcaps,m_dim=self.m_dim)   
 
         ssr_aggregation_model = self.ssr_aggregation_model_build((self.num_primcaps,64))
 
-        if self.is_fc_model:
-            ssr_F_Cap_model = self.ssr_FC_model_build(self.F_shape,'ssr_F_Cap_model')
-        else:    
-            ssr_F_Cap_model = self.ssr_F_model_build(self.F_shape,'ssr_F_Cap_model')        
-
-        # Wire them up
         ssr_G_list = ssr_G_model(img_inputs)
         ssr_primcaps = ssr_S_model(ssr_G_list)
         ssr_Cap_list = ssr_aggregation_model(ssr_primcaps)
-        ssr_F_Cap_list = ssr_F_Cap_model(ssr_Cap_list)
-
-        pred_pose = SSRLayer(s1=self.stage_num[0], s2=self.stage_num[1], s3=self.stage_num[2], lambda_d=self.lambda_d, name="pred_pose")(ssr_F_Cap_list)        
         
-        return Model(inputs=img_inputs, outputs=pred_pose)
+        if type(self.num_classes) == 'int':  
+            if self.is_fc_model:
+                ssr_F_Cap_model = self.ssr_FC_model_build(self.F_shape,self.num_classes,'ssr_F_Cap_model')
+            else:    
+                ssr_F_Cap_model = self.ssr_F_model_build(self.F_shape,self.num_classes,'ssr_F_Cap_model')        
+
+            # Wire them up
+            ssr_F_Cap_list = ssr_F_Cap_model(ssr_Cap_list)
+
+            pred_pose = SSRLayer(s1=self.stage_num[0], s2=self.stage_num[1], s3=self.stage_num[2], lambda_d=self.lambda_d, name="pred_pose")(ssr_F_Cap_list)        
+            
+            return Model(inputs=img_inputs, outputs=pred_pose)
+        else:
+            preds = []
+            for index, num_classes in enumerate(self.num_classes):        
+                if self.is_fc_model:
+                    ssr_F_Cap_model = self.ssr_FC_model_build(self.F_shape,num_classes,f"ssr_F_Cap_model_{ index }")
+                else:    
+                    ssr_F_Cap_model = self.ssr_F_model_build(self.F_shape,num_classes,f"ssr_F_Cap_model_{ index }")        
+
+                # Wire them up
+                ssr_F_Cap_list = ssr_F_Cap_model(ssr_Cap_list)
+
+                pred = SSRLayer(s1=self.stage_num[0], s2=self.stage_num[1], s3=self.stage_num[2], lambda_d=self.lambda_d, name=f"pred_{ index }")(ssr_F_Cap_list)        
+                preds.append(pred)
+
+            return Model(inputs=img_inputs, outputs=preds)
 
 # Capsule FSANetworks
-
 class BaseCapsuleFSANet(BaseFSANet):
     def __init__(self, image_size,num_classes,stage_num,lambda_d, S_set):
         super(BaseCapsuleFSANet, self).__init__(image_size,num_classes,stage_num,lambda_d, S_set)         

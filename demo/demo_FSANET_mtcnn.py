@@ -92,7 +92,8 @@ def main():
     except OSError:
         pass
 
-    K.set_learning_phase(0)  # make sure its testing mode
+    #K.set_
+    #K.set_learning_phase(0)  # make sure its testing mode
     # face_cascade = cv2.CascadeClassifier('lbpcascade_frontalface_improved.xml')
     detector = MTCNN()
 

@@ -46,7 +46,7 @@ def main():
 	print(len(onlyfiles_mat))
 	out_imgs = []
 	out_poses = []
-
+	out_landmarks = []
 	for i in tqdm(range(len(onlyfiles_jpg))):
 		img_name = onlyfiles_jpg[i]
 		mat_name = onlyfiles_mat[i]
@@ -96,6 +96,7 @@ def main():
 		y_max = min(int(y_max + ad * h), img_h - 1)
 		
 		img = img[y_min:y_max,x_min:x_max]
+
 		# Checking the cropped image
 		if isPlot:
 			cv2.imshow('check',img)
@@ -103,18 +104,32 @@ def main():
 
 		img = cv2.resize(img, (img_size, img_size))
 		
-		
+		# Image
+		width = x_max - x_min
+		height = y_max - y_min
+		ratio_w = img_size / width
+		ratio_h = img_size / height
 
+		# Landmark
+		pt2d_x = (pt2d_x - x_min) * ratio_w
+		pt2d_y = (pt2d_y - y_min) * ratio_h
+		pt2d_x = pt2d_x.reshape(-1,1)
+		pt2d_y = pt2d_y.reshape(-1,1)
+		pt2d = np.concatenate([pt2d_x, pt2d_y], axis = 1)
+
+		# Pose
 		pitch = pose_para[0] * 180 / np.pi
 		yaw = pose_para[1] * 180 / np.pi
 		roll = pose_para[2] * 180 / np.pi
 
 		cont_labels = np.array([yaw, pitch, roll])
 
+		# Array
 		out_imgs.append(img)
 		out_poses.append(cont_labels)
+		out_landmarks.append(pt2d)
 
-	np.savez(output_path,image=np.array(out_imgs), pose=np.array(out_poses), img_size=img_size)
+	np.savez(output_path,image=np.array(out_imgs), pose=np.array(out_poses), img_size=img_size, landmark=np.array(out_landmarks))
 
 
 if __name__ == '__main__':

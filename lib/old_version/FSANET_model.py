@@ -30,7 +30,7 @@ np.random.seed(2 ** 10)
 class SSR_net:
     def __init__(self, image_size,stage_num,lambda_local,lambda_d):
         
-        if K.image_dim_ordering() == "th":
+        if K. image_data_format() == "th":
             logging.debug("image_dim_ordering = 'th'")
             self._channel_axis = 1
             self._input_shape = (3, image_size, image_size)
@@ -185,7 +185,7 @@ class SSR_net:
 class SSR_net_general:
     def __init__(self, image_size,stage_num,lambda_local,lambda_d):
         
-        if K.image_dim_ordering() == "th":
+        if K. image_data_format() == "th":
             logging.debug("image_dim_ordering = 'th'")
             self._channel_axis = 1
             self._input_shape = (3, image_size, image_size)
@@ -334,7 +334,7 @@ class SSR_net_general:
 class SSR_net_MT:
     def __init__(self, image_size,num_classes,stage_num,lambda_d):
         
-        if K.image_dim_ordering() == "th":
+        if K. image_data_format() == "th":
             logging.debug("image_dim_ordering = 'th'")
             self._channel_axis = 1
             self._input_shape = (3, image_size, image_size)
@@ -496,7 +496,7 @@ class SSR_net_MT:
 class SSR_net_ori_MT:
     def __init__(self, image_size,num_classes,stage_num,lambda_d):
         
-        if K.image_dim_ordering() == "th":
+        if K. image_data_format() == "th":
             logging.debug("image_dim_ordering = 'th'")
             self._channel_axis = 1
             self._input_shape = (3, image_size, image_size)
@@ -642,7 +642,7 @@ class SSR_net_ori_MT:
 class FSA_net_Capsule:
     def __init__(self, image_size,num_classes,stage_num,lambda_d, S_set):
         
-        if K.image_dim_ordering() == "th":
+        if K. image_data_format() == "th":
             logging.debug("image_dim_ordering = 'th'")
             self._channel_axis = 1
             self._input_shape = (3, image_size, image_size)
@@ -930,7 +930,7 @@ class FSA_net_Capsule:
 class FSA_net_Var_Capsule:
     def __init__(self, image_size,num_classes,stage_num,lambda_d, S_set):
         
-        if K.image_dim_ordering() == "th":
+        if K. image_data_format() == "th":
             logging.debug("image_dim_ordering = 'th'")
             self._channel_axis = 1
             self._input_shape = (3, image_size, image_size)
@@ -1222,7 +1222,7 @@ class FSA_net_Var_Capsule:
 class FSA_net_noS_Capsule:
     def __init__(self, image_size,num_classes,stage_num,lambda_d, S_set):
         
-        if K.image_dim_ordering() == "th":
+        if K. image_data_format() == "th":
             logging.debug("image_dim_ordering = 'th'")
             self._channel_axis = 1
             self._input_shape = (3, image_size, image_size)
@@ -1473,7 +1473,7 @@ class FSA_net_noS_Capsule:
 class FSA_net_Capsule_FC:
     def __init__(self, image_size,num_classes,stage_num,lambda_d, S_set):
         
-        if K.image_dim_ordering() == "th":
+        if K. image_data_format() == "th":
             logging.debug("image_dim_ordering = 'th'")
             self._channel_axis = 1
             self._input_shape = (3, image_size, image_size)
@@ -1758,7 +1758,7 @@ class FSA_net_Capsule_FC:
 class FSA_net_Var_Capsule_FC:
     def __init__(self, image_size,num_classes,stage_num,lambda_d, S_set):
         
-        if K.image_dim_ordering() == "th":
+        if K. image_data_format() == "th":
             logging.debug("image_dim_ordering = 'th'")
             self._channel_axis = 1
             self._input_shape = (3, image_size, image_size)
@@ -2047,7 +2047,7 @@ class FSA_net_Var_Capsule_FC:
 class FSA_net_noS_Capsule_FC:
     def __init__(self, image_size,num_classes,stage_num,lambda_d, S_set):
         
-        if K.image_dim_ordering() == "th":
+        if K. image_data_format() == "th":
             logging.debug("image_dim_ordering = 'th'")
             self._channel_axis = 1
             self._input_shape = (3, image_size, image_size)
@@ -2294,7 +2294,7 @@ class FSA_net_noS_Capsule_FC:
 class FSA_net_NetVLAD:
     def __init__(self, image_size,num_classes,stage_num,lambda_d, S_set):
         
-        if K.image_dim_ordering() == "th":
+        if K. image_data_format() == "th":
             logging.debug("image_dim_ordering = 'th'")
             self._channel_axis = 1
             self._input_shape = (3, image_size, image_size)
@@ -2580,7 +2580,7 @@ class FSA_net_NetVLAD:
 class FSA_net_Var_NetVLAD:
     def __init__(self, image_size,num_classes,stage_num,lambda_d, S_set):
         
-        if K.image_dim_ordering() == "th":
+        if K. image_data_format() == "th":
             logging.debug("image_dim_ordering = 'th'")
             self._channel_axis = 1
             self._input_shape = (3, image_size, image_size)
@@ -2871,7 +2871,7 @@ class FSA_net_Var_NetVLAD:
 class FSA_net_noS_NetVLAD:
     def __init__(self, image_size,num_classes,stage_num,lambda_d, S_set):
         
-        if K.image_dim_ordering() == "th":
+        if K. image_data_format() == "th":
             logging.debug("image_dim_ordering = 'th'")
             self._channel_axis = 1
             self._input_shape = (3, image_size, image_size)
@@ -3121,7 +3121,7 @@ class FSA_net_noS_NetVLAD:
 class FSA_net_NetVLAD_FC:
     def __init__(self, image_size,num_classes,stage_num,lambda_d, S_set):
         
-        if K.image_dim_ordering() == "th":
+        if K. image_data_format() == "th":
             logging.debug("image_dim_ordering = 'th'")
             self._channel_axis = 1
             self._input_shape = (3, image_size, image_size)
@@ -3404,7 +3404,7 @@ class FSA_net_NetVLAD_FC:
 class FSA_net_Var_NetVLAD_FC:
     def __init__(self, image_size,num_classes,stage_num,lambda_d, S_set):
         
-        if K.image_dim_ordering() == "th":
+        if K. image_data_format() == "th":
             logging.debug("image_dim_ordering = 'th'")
             self._channel_axis = 1
             self._input_shape = (3, image_size, image_size)
@@ -3692,7 +3692,7 @@ class FSA_net_Var_NetVLAD_FC:
 class FSA_net_noS_NetVLAD_FC:
     def __init__(self, image_size,num_classes,stage_num,lambda_d, S_set):
         
-        if K.image_dim_ordering() == "th":
+        if K. image_data_format() == "th":
             logging.debug("image_dim_ordering = 'th'")
             self._channel_axis = 1
             self._input_shape = (3, image_size, image_size)
@@ -3939,7 +3939,7 @@ class FSA_net_noS_NetVLAD_FC:
 class FSA_net_Metric:
     def __init__(self, image_size,num_classes,stage_num,lambda_d, S_set):
         
-        if K.image_dim_ordering() == "th":
+        if K. image_data_format() == "th":
             logging.debug("image_dim_ordering = 'th'")
             self._channel_axis = 1
             self._input_shape = (3, image_size, image_size)
@@ -4227,7 +4227,7 @@ class FSA_net_Metric:
 class FSA_net_Var_Metric:
     def __init__(self, image_size,num_classes,stage_num,lambda_d, S_set):
         
-        if K.image_dim_ordering() == "th":
+        if K. image_data_format() == "th":
             logging.debug("image_dim_ordering = 'th'")
             self._channel_axis = 1
             self._input_shape = (3, image_size, image_size)
@@ -4520,7 +4520,7 @@ class FSA_net_Var_Metric:
 class FSA_net_noS_Metric:
     def __init__(self, image_size,num_classes,stage_num,lambda_d, S_set):
         
-        if K.image_dim_ordering() == "th":
+        if K. image_data_format() == "th":
             logging.debug("image_dim_ordering = 'th'")
             self._channel_axis = 1
             self._input_shape = (3, image_size, image_size)

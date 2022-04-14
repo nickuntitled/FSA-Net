@@ -3,15 +3,15 @@ import sys
 import numpy as np
 from keras.models import Model
 from keras.layers import *
-from keras.layers.convolutional import Conv2D, AveragePooling2D, MaxPooling2D, SeparableConv2D
-from keras.layers.normalization import BatchNormalization
+# from keras.layers.convolutional import Conv2D, AveragePooling2D, MaxPooling2D, SeparableConv2D
+# from keras.layers.normalization import BatchNormalization
 from keras.layers import GlobalAveragePooling2D, GlobalMaxPooling2D
 from keras.regularizers import l2
 from keras import backend as K
-from keras.optimizers import SGD,Adam
+from tensorflow.keras.optimizers import SGD,Adam
 from keras.applications.mobilenet import MobileNet
-from keras.utils import plot_model
-from keras.engine.topology import Layer
+from tensorflow.keras.utils import plot_model
+from tensorflow.keras.layers import Layer
 from keras import activations, initializers, regularizers, constraints
 import tensorflow as tf
 
@@ -25,7 +25,7 @@ np.random.seed(2 ** 10)
 class SSR_net:
     def __init__(self, image_size,stage_num,lambda_local,lambda_d):
         
-        if K.image_dim_ordering() == "th":
+        if K.image_data_format() == "th":
             logging.debug("image_dim_ordering = 'th'")
             self._channel_axis = 1
             self._input_shape = (3, image_size, image_size)
@@ -180,7 +180,7 @@ class SSR_net:
 class SSR_net_general:
     def __init__(self, image_size,stage_num,lambda_local,lambda_d):
         
-        if K.image_dim_ordering() == "th":
+        if K. image_data_format() == "th":
             logging.debug("image_dim_ordering = 'th'")
             self._channel_axis = 1
             self._input_shape = (3, image_size, image_size)
@@ -329,7 +329,7 @@ class SSR_net_general:
 class SSR_net_MT:
     def __init__(self, image_size,num_classes,stage_num,lambda_d):
         
-        if K.image_dim_ordering() == "th":
+        if K. image_data_format() == "th":
             logging.debug("image_dim_ordering = 'th'")
             self._channel_axis = 1
             self._input_shape = (3, image_size, image_size)
@@ -488,10 +488,11 @@ class SSR_net_MT:
         model = Model(inputs=img_inputs, outputs=pred_pose)
 
         return model
+
 class SSR_net_ori_MT:
     def __init__(self, image_size,num_classes,stage_num,lambda_d):
         
-        if K.image_dim_ordering() == "th":
+        if K. image_data_format() == "th":
             logging.debug("image_dim_ordering = 'th'")
             self._channel_axis = 1
             self._input_shape = (3, image_size, image_size)
@@ -551,14 +552,29 @@ class SSR_net_ori_MT:
 
         feat_s1_pre = Multiply()([s_layer4,x_layer4])
         feat_s1_pre = Flatten()(feat_s1_pre)
-        feat_delta_s1 = Dense(2*self.num_classes,activation='tanh')(feat_s1_pre)
-        delta_s1 = Dense(self.num_classes,activation='tanh',name='delta_s1')(feat_delta_s1)
 
-        feat_local_s1 = Dense(2*self.num_classes,activation='tanh')(feat_s1_pre)
-        local_s1 = Dense(units=self.num_classes, activation='tanh', name='local_delta_stage1')(feat_local_s1)
+        if type(self.num_classes) == 'int':
+            feat_delta_s1 = Dense(2*self.num_classes,activation='tanh')(feat_s1_pre)
+            delta_s1 = Dense(self.num_classes,activation='tanh',name='delta_s1')(feat_delta_s1)
 
-        feat_pred_s1 = Dense(self.stage_num[0]*self.num_classes,activation='relu')(feat_s1_pre) 
-        pred_a_s1 = Reshape((self.num_classes,self.stage_num[0]))(feat_pred_s1)
+            feat_local_s1 = Dense(2*self.num_classes,activation='tanh')(feat_s1_pre)
+            local_s1 = Dense(units=self.num_classes, activation='tanh', name='local_delta_stage1')(feat_local_s1)
+
+            feat_pred_s1 = Dense(self.stage_num[0]*self.num_classes,activation='relu')(feat_s1_pre) 
+            pred_a_s1 = Reshape((self.num_classes,self.stage_num[0]))(feat_pred_s1)
+        else:
+            delta_s1s = []
+            local_s1s = []
+            pred_a_s1s = []
+            for index, num_classes in enumerate(self.num_classes):
+                feat_delta_s1 = Dense(2*num_classes,activation='tanh')(feat_s1_pre)
+                delta_s1s.append(Dense(num_classes,activation='tanh',name=f"delta_s1_{ index }")(feat_delta_s1))
+
+                feat_local_s1 = Dense(2*num_classes,activation='tanh')(feat_s1_pre)
+                local_s1s.append(Dense(units=num_classes, activation='tanh', name=f"local_delta_stage1_{ index }")(feat_local_s1))
+
+                feat_pred_s1 = Dense(self.stage_num[0]*num_classes,activation='relu')(feat_s1_pre) 
+                pred_a_s1s.append(Reshape((num_classes,self.stage_num[0]))(feat_pred_s1))
         #-------------------------------------------------------------------------------------------------------------------------
         s_layer3 = Conv2D(64,(1,1),activation='tanh')(s_layer3)
         s_layer3 = MaxPooling2D((2,2))(s_layer3)
@@ -568,14 +584,30 @@ class SSR_net_ori_MT:
 
         feat_s2_pre = Multiply()([s_layer3,x_layer3])
         feat_s2_pre  = Flatten()(feat_s2_pre)
-        feat_delta_s2 = Dense(2*self.num_classes,activation='tanh')(feat_s2_pre)
-        delta_s2 = Dense(self.num_classes,activation='tanh',name='delta_s2')(feat_delta_s2)
 
-        feat_local_s2 = Dense(2*self.num_classes,activation='tanh')(feat_s2_pre)
-        local_s2 = Dense(units=self.num_classes, activation='tanh', name='local_delta_stage2')(feat_local_s2)
+        if type(self.num_classes) == 'int':
+            feat_delta_s2 = Dense(2*self.num_classes,activation='tanh')(feat_s2_pre)
+            delta_s2 = Dense(self.num_classes,activation='tanh',name='delta_s2')(feat_delta_s2)
 
-        feat_pred_s2 = Dense(self.stage_num[1]*self.num_classes,activation='relu')(feat_s2_pre) 
-        pred_a_s2 = Reshape((self.num_classes,self.stage_num[1]))(feat_pred_s2)
+            feat_local_s2 = Dense(2*self.num_classes,activation='tanh')(feat_s2_pre)
+            local_s2 = Dense(units=self.num_classes, activation='tanh', name='local_delta_stage2')(feat_local_s2)
+
+            feat_pred_s2 = Dense(self.stage_num[1]*self.num_classes,activation='relu')(feat_s2_pre) 
+            pred_a_s2 = Reshape((self.num_classes,self.stage_num[1]))(feat_pred_s2)
+        else:
+            delta_s2s = []
+            local_s2s = []
+            pred_a_s2s = []
+            for index, num_classes in enumerate(self.num_classes):
+                feat_delta_s2 = Dense(2*num_classes,activation='tanh')(feat_s2_pre)
+                delta_s2s.append(Dense(num_classes,activation='tanh',name=f'delta_s2_{ index }')(feat_delta_s2))
+
+                feat_local_s2 = Dense(2*num_classes,activation='tanh')(feat_s2_pre)
+                local_s2s.append(Dense(units=num_classes, activation='tanh', name=f'local_delta_stage2_{ index }')(feat_local_s2))
+
+                feat_pred_s2 = Dense(self.stage_num[1]*num_classes,activation='relu')(feat_s2_pre) 
+                pred_a_s2s.append(Reshape((num_classes,self.stage_num[1]))(feat_pred_s2))
+
         #-------------------------------------------------------------------------------------------------------------------------
         s_layer2 = Conv2D(64,(1,1),activation='tanh')(s_layer2)
         s_layer2 = MaxPooling2D((2,2))(s_layer2)
@@ -585,14 +617,29 @@ class SSR_net_ori_MT:
 
         feat_s3_pre = Multiply()([s_layer2,x_layer2])
         feat_s3_pre  = Flatten()(feat_s3_pre)
-        feat_delta_s3 = Dense(2*self.num_classes,activation='tanh')(feat_s3_pre)
-        delta_s3 = Dense(self.num_classes,activation='tanh',name='delta_s3')(feat_delta_s3)
 
-        feat_local_s3 = Dense(2*self.num_classes,activation='tanh')(feat_s3_pre)
-        local_s3 = Dense(units=self.num_classes, activation='tanh', name='local_delta_stage3')(feat_local_s3)
+        if type(self.num_classes) == 'int':
+            feat_delta_s3 = Dense(2*self.num_classes,activation='tanh')(feat_s3_pre)
+            delta_s3 = Dense(self.num_classes,activation='tanh',name='delta_s3')(feat_delta_s3)
 
-        feat_pred_s3 = Dense(self.stage_num[2]*self.num_classes,activation='relu')(feat_s3_pre) 
-        pred_a_s3 = Reshape((self.num_classes,self.stage_num[2]))(feat_pred_s3)
+            feat_local_s3 = Dense(2*self.num_classes,activation='tanh')(feat_s3_pre)
+            local_s3 = Dense(units=self.num_classes, activation='tanh', name='local_delta_stage3')(feat_local_s3)
+
+            feat_pred_s3 = Dense(self.stage_num[2]*self.num_classes,activation='relu')(feat_s3_pre) 
+            pred_a_s3 = Reshape((self.num_classes,self.stage_num[2]))(feat_pred_s3)
+        else:
+            delta_s3s = []
+            local_s3s = []
+            pred_a_s3s = []
+            for index, num_classes in enumerate(self.num_classes):
+                feat_delta_s3 = Dense(2*num_classes,activation='tanh')(feat_s3_pre)
+                delta_s3s.append(Dense(num_classes,activation='tanh',name=f'delta_s3_{ index }')(feat_delta_s3))
+
+                feat_local_s3 = Dense(2*num_classes,activation='tanh')(feat_s3_pre)
+                local_s3s.append(Dense(units=num_classes, activation='tanh', name=f'local_delta_stage3_{ index }')(feat_local_s3))
+
+                feat_pred_s3 = Dense(self.stage_num[2]*num_classes,activation='relu')(feat_s3_pre) 
+                pred_a_s3s.append(Reshape((num_classes,self.stage_num[2]))(feat_pred_s3))
         #-------------------------------------------------------------------------------------------------------------------------
 
         def SSR_module(x,s1,s2,s3,lambda_d):
@@ -626,7 +673,15 @@ class SSR_net_ori_MT:
             
             return pred
 
-        pred_pose = Lambda(SSR_module,arguments={'s1':self.stage_num[0],'s2':self.stage_num[1],'s3':self.stage_num[2],'lambda_d':self.lambda_d},name='pred_pose')([pred_a_s1,pred_a_s2,pred_a_s3,delta_s1,delta_s2,delta_s3,local_s1,local_s2,local_s3])
+        if type(self.num_classes) == 'int':
+            pred_pose = Lambda(SSR_module,arguments={'s1':self.stage_num[0],'s2':self.stage_num[1],'s3':self.stage_num[2],'lambda_d':self.lambda_d},name='pred_pose')([pred_a_s1,pred_a_s2,pred_a_s3,delta_s1,delta_s2,delta_s3,local_s1,local_s2,local_s3])
+        else:
+            pred_pose = []
+            for index in range(len(self.num_classes)):
+                delta_s1, local_s1, pred_a_s1 = delta_s1s[index], local_s1s[index], pred_a_s1s[index]
+                delta_s2, local_s2, pred_a_s2 = delta_s2s[index], local_s2s[index], pred_a_s2s[index]
+                delta_s3, local_s3, pred_a_s3 = delta_s3s[index], local_s3s[index], pred_a_s3s[index]
+                pred_pose.append(Lambda(SSR_module,arguments={'s1':self.stage_num[0],'s2':self.stage_num[1],'s3':self.stage_num[2],'lambda_d':self.lambda_d},name=f'pred_pose_{ index }')([pred_a_s1,pred_a_s2,pred_a_s3,delta_s1,delta_s2,delta_s3,local_s1,local_s2,local_s3]))
 
         model = Model(inputs=img_inputs, outputs=pred_pose)
 
